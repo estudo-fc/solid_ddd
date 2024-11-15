@@ -1,0 +1,29 @@
+services:
+  postgres:
+    image: postgres
+    volumes:
+      - ./sql/create.sql:/docker-entrypoint-initdb.d/create.sql
+    environment:
+      POSTGRES_USER: maruko
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "${POSTGRES_PORT}:5432"
+    networks:
+      - pg-network
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: pg-admin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
+    ports:
+      - "${PGADMIN_PORT}:80"
+    networks:
+      - pg-network
+
+networks:
+  pg-network:
+
+volumes:
+  pg-data:
