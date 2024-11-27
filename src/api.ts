@@ -1,14 +1,27 @@
 import express, { Request, Response } from 'express';
-import { cancelReservation, getReservation, makeReservation } from './business';
-import { log } from 'console';
+
+import MakeReservation from './application/MakeReservation';
+import CancelReservation from './application/CancelReservation';
+import GetReservation from './application/GetReservation';
+import { ReservationRepositoryDatabase } from './infra/repository/ReservationRepository';
+import { RoomRepositoryDatabase } from './infra/repository/RoomRepository';
+
+
 const app = express();
+
+const ReservationRepository = new ReservationRepositoryDatabase();
+const roomRepository = new RoomRepositoryDatabase();
+
+const makeReservation = new MakeReservation(ReservationRepository, roomRepository);
+const cancelReservation = new CancelReservation(ReservationRepository);
+const getReservation = new GetReservation(ReservationRepository);
 
 app.use(express.json());
 
 app.post("/make_reservation", async (req: Request, res: Response) => {
     const input = req.body;
     try {
-        const output = await makeReservation(input);
+        const output = await makeReservation.makeReservation(input);
         res.json(output);
     } catch (e: any) {
         res.status(422).json({
@@ -21,14 +34,14 @@ app.post("/make_reservation", async (req: Request, res: Response) => {
 
 app.post("/cancel_reservation", async (req: Request, res: Response) => {
     const { reservationId } = req.body;
-    await cancelReservation(reservationId)
+    await cancelReservation.execute(reservationId)
     res.end();
 });
 
 
 app.get("/reservations/:reservationId", async (req: Request, res: Response) => {
     const { reservationId } = req.params;
-    const output = await getReservation(reservationId)
+    const output = await getReservation.execute(reservationId)
     res.json(output);
 });
 
